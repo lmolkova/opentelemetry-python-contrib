@@ -30,21 +30,27 @@ def _extract_conn_attributes(conn_kwargs):
     }
     db = conn_kwargs.get("db", 0)
     attributes[SpanAttributes.DB_REDIS_DATABASE_INDEX] = db
-    try:
-        attributes[SpanAttributes.NET_PEER_NAME] = conn_kwargs.get(
-            "host", "localhost"
-        )
-        attributes[SpanAttributes.NET_PEER_PORT] = conn_kwargs.get(
-            "port", 6379
-        )
-        attributes[
-            SpanAttributes.NET_TRANSPORT
-        ] = NetTransportValues.IP_TCP.value
-    except KeyError:
-        attributes[SpanAttributes.NET_PEER_NAME] = conn_kwargs.get("path", "")
+
+    if conn_kwargs.get("username"):
+        attributes[SpanAttributes.DB_USER] = conn_kwargs["username"]
+
+    if conn_kwargs.get("client_name"):
+        # TODO: add to semconv?
+        attributes["db.redis.client_name"] = conn_kwargs["client_name"]
+
+    if conn_kwargs.get("path"):
+        attributes[SpanAttributes.NET_SOCK_PEER_ADDR] = conn_kwargs["path"]
         attributes[
             SpanAttributes.NET_SOCK_FAMILY
         ] = NetSockFamilyValues.UNIX.value
+    else:
+        attributes[SpanAttributes.NET_PEER_NAME] = conn_kwargs.get(
+            "host", "TRACE_MISSING"
+        )
+        attributes[SpanAttributes.NET_PEER_PORT] = conn_kwargs.get("port", 0)
+        attributes[
+            SpanAttributes.NET_TRANSPORT
+        ] = NetTransportValues.IP_TCP.value
 
     return attributes
 
