@@ -243,3 +243,58 @@ class TestRedis(TestBase):
 
         spans = self.memory_exporter.get_finished_spans()
         self.assertEqual(len(spans), 0)
+
+    def test_db_semantic_attributes_server(self):
+        redis_client = redis.Redis(
+            host="test.db.semantic.conv",
+            port=12345,
+            client_name="buggy_client",
+        )
+        connection = redis.connection.Connection()
+        redis_client.connection = connection
+
+        with mock.patch.object(redis_client, "connection"):
+            redis_client.set("key", "value")
+
+        spans = self.memory_exporter.get_finished_spans()
+        self.assertEqual(len(spans), 1)
+
+        # semconv 1.20.0
+        span = spans[0]
+        self.assertEqual(span.name, "SET")
+        self.assertEqual(span.attributes.get("db.system"), "redis")
+        self.assertEqual(
+            span.attributes.get("net.peer.name"), "test.db.semantic.conv"
+        )
+        self.assertEqual(span.attributes.get("net.peer.port"), 12345)
+        self.assertEqual(span.attributes.get("net.transport"), "ip_tcp")
+        self.assertEqual(span.attributes.get("db.statement"), "SET ? ?")
+        self.assertEqual(span.attributes.get("db.redis.database_index"), 0)
+
+    def test_db_semantic_attributes_socket(self):
+        redis_client = redis.Redis(
+            unix_socket_path="/tmp/semantic.conv.sock",
+            db=2,
+            username="redis-user",
+        )
+        connection = redis.connection.Connection()
+        redis_client.connection = connection
+
+        with mock.patch.object(redis_client, "connection"):
+            redis_client.set("key", "value")
+
+        spans = self.memory_exporter.get_finished_spans()
+        self.assertEqual(len(spans), 1)
+
+        # semconv 1.20.0
+        span = spans[0]
+        self.assertEqual(span.name, "SET")
+        self.assertEqual(span.attributes.get("db.system"), "redis")
+        self.assertEqual(
+            span.attributes.get("net.sock.peer.addr"),
+            "/tmp/semantic.conv.sock",
+        )
+        self.assertEqual(span.attributes.get("net.sock.family"), "unix")
+        self.assertEqual(span.attributes.get("db.statement"), "SET ? ?")
+        self.assertEqual(span.attributes.get("db.redis.database_index"), 2)
+        self.assertEqual(span.attributes.get("db.user"), "redis-user")
