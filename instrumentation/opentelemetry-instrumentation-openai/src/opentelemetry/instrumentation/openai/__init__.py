@@ -46,6 +46,8 @@ from typing import Collection
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 from opentelemetry.instrumentation.openai.package import _instruments
 from opentelemetry.trace import get_tracer
+from opentelemetry._events import get_event_logger
+from opentelemetry.semconv.schemas import Schemas
 from wrapt import wrap_function_wrapper
 from .patch import chat_completions_create
 
@@ -58,13 +60,15 @@ class OpenAIInstrumentor(BaseInstrumentor):
     def _instrument(self, **kwargs):
         """Enable OpenAI instrumentation."""
         tracer_provider = kwargs.get("tracer_provider")
-        tracer = get_tracer(__name__, "", tracer_provider)
+        event_provider = kwargs.get("event_provider")
+        tracer = get_tracer(__name__, "", tracer_provider, schema_url=Schemas.V1_27_0)
+        event_logger = get_event_logger(__name__, event_provider)
         version = importlib.metadata.version("openai")
         wrap_function_wrapper(
             "openai.resources.chat.completions",
             "Completions.create",
             chat_completions_create(
-                "openai.chat.completions.create", version, tracer
+                "openai.chat.completions.create", version, tracer, event_logger
             ),
         )
 
