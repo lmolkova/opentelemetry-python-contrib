@@ -18,6 +18,7 @@ from opentelemetry._events import EventLogger, Event
 from opentelemetry.trace.status import Status, StatusCode
 from openai import NOT_GIVEN
 from opentelemetry.semconv._incubating.attributes import gen_ai_attributes, error_attributes
+from opentelemetry.semconv.attributes import error_attributes
 
 from opentelemetry.trace import Tracer
 
