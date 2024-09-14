@@ -13,9 +13,9 @@ jobs:
   prereqs:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.verify-prerequisites.version }}
-      changelog: ${{ steps.verify-prerequisites.changelog }}
-      version_file: ${{ steps.verify-prerequisites.version_file }}
+      version: ${{ steps.verify-prerequisites.outputs.version }}
+      changelog: ${{ steps.verify-prerequisites.outputs.changelog }}
+      version_file: ${{ steps.verify-prerequisites.outputs.version_file }}
     steps:
       - uses: actions/checkout@v4
 
