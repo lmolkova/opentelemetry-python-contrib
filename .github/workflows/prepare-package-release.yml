@@ -46,6 +46,7 @@ jobs:
             echo "Error: expected one version.py file, found $file_count"
             echo "$version_file"
             exit 1
+          fi
 
           echo "version=$version" >> $GITHUB_OUTPUT
           echo "changelog=$changelog" >> $GITHUB_OUTPUT
