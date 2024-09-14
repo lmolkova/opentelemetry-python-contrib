@@ -22,7 +22,7 @@ jobs:
             exit 1
           fi
 
-          path=./$(./scripts/eachdist.py find-package --package  ${{ inputs.package }})
+          path=./$(./scripts/eachdist.py find-package --package ${{ inputs.package }})
           changelog=$path/CHANGELOG.md
 
           if ! grep --quiet "^## Unreleased$" $changelog; then
@@ -40,7 +40,7 @@ jobs:
           version=${version_dev%.dev}
 
           version_file=$(find $path -type f -name "version.py")
-          file_count=$(echo "$version_file" | wc -l
+          file_count=$(echo "$version_file" | wc -l)
 
           if [ "$file_count" -ne 1 ]; then
             echo "Error: expected one version.py file, found $file_count"
