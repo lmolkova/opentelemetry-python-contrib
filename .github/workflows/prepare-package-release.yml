@@ -61,15 +61,15 @@ jobs:
       - name: Create package release branch
         env:
           PACKAGE_NAME: ${{ github.event.inputs.package }}
-          VERSION: ${{ needs.prereqs.outputs.version }}
-          CHANGELOG: ${{ needs.prereqs.outputs.changelog }}
-          VERSION_FILE: ${{ needs.prereqs.outputs.version_file }}
         run: |
-          release_branch_name="package-release/$PACKAGE_NAME/v$VERSION"
+          release_branch_name="package-release/$PACKAGE_NAME/v${{ needs.prereqs.outputs.version }}"
 
           git push origin HEAD:$release_branch_name
 
           echo "RELEASE_BRANCH_NAME=$release_branch_name" >> $GITHUB_ENV
+          echo "VERSION=${{ needs.prereqs.outputs.version }}" >> $GITHUB_ENV
+          echo "CHANGELOG=${{ needs.prereqs.outputs.changelog }}" >> $GITHUB_ENV
+          echo "VERSION_FILE=${{ needs.prereqs.outputs.version_file }}" >> $GITHUB_ENV
 
       - name: Update package version
         run: |
