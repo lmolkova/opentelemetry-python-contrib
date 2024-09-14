@@ -121,12 +121,12 @@ jobs:
       - name: Set environment variables
         run: |
           version=${{ needs.prereqs.outputs.version }}
-          if [[ version =~ ^([0-9]+)\.([0-9]+)\.([0-9]+) ]]; then
+          if [[ $version =~ ^([0-9]+)\.([0-9]+)\.([0-9]+) ]]; then
             # 1.2.3 or 1.2.3rc1
             major="${BASH_REMATCH[1]}"
             minor="${BASH_REMATCH[2]}"
             next_version="$major.$((minor + 1)).0"
-          elif [[ version =~ ^([0-9]+)\.([0-9]+)b([0-9]+) ]]; then
+          elif [[ $version =~ ^([0-9]+)\.([0-9]+)b([0-9]+)$ ]]; then
             # 0.1b1
             major="${BASH_REMATCH[1]}"
             minor="${BASH_REMATCH[2]}"
