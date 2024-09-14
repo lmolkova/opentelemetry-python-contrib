@@ -22,7 +22,7 @@ jobs:
             exit 1
           fi
 
-          path=./$(./scripts/eachdist.py find-package --package ${PACKAGE_NAME})
+          path=./$(./scripts/eachdist.py find-package --package  ${{ inputs.package }})
           changelog=$path/CHANGELOG.md
 
           if ! grep --quiet "^## Unreleased$" $changelog; then
