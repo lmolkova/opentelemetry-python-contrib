@@ -64,10 +64,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Create package release branch
-        env:
-          PACKAGE_NAME: ${{ github.event.inputs.package }}
         run: |
-          release_branch_name="package-release/$PACKAGE_NAME/v${{ needs.prereqs.outputs.version }}"
+          release_branch_name="package-release/${{ github.event.inputs.package }}/v${{ needs.prereqs.outputs.version }}"
 
           git push origin HEAD:$release_branch_name
 
@@ -75,6 +73,7 @@ jobs:
           echo "VERSION=${{ needs.prereqs.outputs.version }}" >> $GITHUB_ENV
           echo "CHANGELOG=${{ needs.prereqs.outputs.changelog }}" >> $GITHUB_ENV
           echo "VERSION_FILE=${{ needs.prereqs.outputs.version_file }}" >> $GITHUB_ENV
+          echo "PACKAGE_NAME=${{ github.event.inputs.package }}" >> $GITHUB_ENV
 
       - name: Update package version
         run: |
@@ -127,13 +126,13 @@ jobs:
             major="${BASH_REMATCH[1]}"
             minor="${BASH_REMATCH[2]}"
             next_version="$major.$((minor + 1)).0"
-          elif [[ version =~ ^([0-9]+)\.([0-9]+)b([0-9]+)$ ]]; then
+          elif [[ version =~ ^([0-9]+)\.([0-9]+)b([0-9]+) ]]; then
             # 0.1b1
             major="${BASH_REMATCH[1]}"
             minor="${BASH_REMATCH[2]}"
             next_version="$major.$((minor + 1))b0"
           else
-            echo "unexpected version: $version"
+            echo "unexpected version: '$version'"
             exit 1
           fi
 
