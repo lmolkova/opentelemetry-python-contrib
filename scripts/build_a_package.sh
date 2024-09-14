@@ -22,13 +22,13 @@ set -ev
 
 if [ $PACKAGE_NAME ]; then
   pkg_name=${PACKAGE_NAME}
-  pkg_version=${PACKAGE_VERSION}
+  pkg_version=${VERSION}
 elif [ $GITHUB_REF ]; then
   pkg_name_and_version=${GITHUB_REF#refs/tags/*}
   pkg_name=${pkg_name_and_version%==*}
   pkg_version=${pkg_name_and_version#opentelemetry-*==}
 else
-  echo 'Failed to run script, missing workflow env variable GITHUB_REF or PACKAGE_NAME and PACKAGE_VERSION.'
+  echo 'Failed to run script, missing workflow env variable GITHUB_REF or PACKAGE_NAME and VERSION.'
   exit 1
 fi
 
