@@ -135,6 +135,7 @@ jobs:
         env:
           # TODO not using secrets.GITHUB_TOKEN since pull requests from that token do not run workflows
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           message="Copy change log updates from $GITHUB_REF_NAME"
           body="Copy log updates from \`$GITHUB_REF_NAME\`."
