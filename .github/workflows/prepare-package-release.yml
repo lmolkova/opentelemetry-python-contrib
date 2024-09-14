@@ -140,6 +140,7 @@ jobs:
           echo "NEXT_VERSION=$next_version.dev" >> $GITHUB_ENV
           echo "PACKAGE_NAME=${{ github.event.inputs.package }}" >> $GITHUB_ENV
           echo "VERSION_FILE=${{ needs.prereqs.outputs.version_file }}" >> $GITHUB_ENV
+          echo "CHANGELOG=${{ needs.prereqs.outputs.changelog }}" >> $GITHUB_ENV
 
       - name: Update version
         run: |
