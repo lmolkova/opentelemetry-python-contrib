@@ -13,8 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          if [[ $GITHUB_REF_NAME != package-release/* ]]; then
-            echo this workflow should only be run against package-release branches
+          if [[ $GITHUB_REF_NAME != package-release/${{ inputs.package }}* ]]; then
+            echo this workflow should only be run against package-release/${{ inputs.package }}* branches
             exit 1
           fi
 
