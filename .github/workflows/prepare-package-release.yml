@@ -170,8 +170,8 @@ jobs:
           # not using secrets.GITHUB_TOKEN since pull requests from that token do not run workflows TODO
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          message="Update $PACKAGE_NAME version to $NEXT_VERSION"
-          body="Update `$PACKAGE_NAME` version to \`$NEXT_VERSION\`."
+          message="Update ${PACKAGE_NAME} version to ${NEXT_VERSION}"
+          body="Update \`${PACKAGE_NAME}\` version to \`${NEXT_VERSION}\`."
           branch="opentelemetrybot/update-${PACKAGE_NAME}-version-to-${NEXT_VERSION}"
 
           git commit -a -m "$message"
