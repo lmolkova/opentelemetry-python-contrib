@@ -1,4 +1,4 @@
-name: Prepare package release branch
+name: Prepare package release
 on:
   workflow_dispatch:
     inputs:
@@ -145,7 +145,7 @@ jobs:
       - name: Update version
         run: |
           # replace the version in the version.py file (1.2.3dev -> 1.2.3)
-          sed -i -E "s/__version__\s*=\s*\"${VERSION}\.dev\"/__version__ = \"${NEXT_VERSION}\"/g" $VERSION_FILE
+          sed -i -E "s/__version__\s*=\s*\"${VERSION}\.dev\"/__version__ = \"${NEXT_VERSION}.dev\"/g" $VERSION_FILE
 
       - name: Set up Python 3.9
         uses: actions/setup-python@v5

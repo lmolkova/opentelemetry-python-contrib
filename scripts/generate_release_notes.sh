@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # This script copies release notes for the current version from CHANGELOG.md file
 # and stores them in /tmp/release-notes.txt.
@@ -17,10 +17,8 @@ fi
 
 # CHANGELOG_SECTION.md is also used at the end of the release workflow
 # for copying the change log updates to main
-sed -n "0,/^## Version ${VERSION}/d;/^## Version /q;p" ${CHANGELOG} \
-> /tmp/CHANGELOG_SECTION.md
+sed -n "0,/^## Version ${VERSION}/d;/^## Version /q;p" $CHANGELOG > /tmp/CHANGELOG_SECTION.md
 
 # the complex perl regex is needed because markdown docs render newlines as soft wraps
 # while release notes render them as line breaks
-perl -0pe 's/(?<!\n)\n *(?!\n)(?![-*] )(?![1-9]+\. )/ /g' /tmp/CHANGELOG_SECTION.md \
->> /tmp/release-notes.txt
+perl -0pe 's/(?<!\n)\n *(?!\n)(?![-*] )(?![1-9]+\. )/ /g' /tmp/CHANGELOG_SECTION.md >> /tmp/release-notes.txt

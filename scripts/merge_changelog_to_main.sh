@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # This script copies release notes for the current version from CHANGELOG.md file
 # and stores them in a temporary file for later use in the release workflow
@@ -9,7 +9,8 @@ if [[ -z $PRIOR_VERSION_WHEN_PATCH ]]; then
     # this was not a patch release, so the version exists already in the CHANGELOG.md
 
     # update the release date
-    date=$(gh release view $RELEASE_TAG --json publishedAt --jq .publishedAt | sed 's/T.*//')
+    #date=$(gh release view $RELEASE_TAG --json publishedAt --jq .publishedAt | sed 's/T.*//')
+    date=$(date +"%Y-%m-%d")-fix
     sed -Ei "s/## Version ${VERSION}.*/## Version ${VERSION} ($date)/" ${CHANGELOG}
 
     # the entries are copied over from the release branch to support workflows
