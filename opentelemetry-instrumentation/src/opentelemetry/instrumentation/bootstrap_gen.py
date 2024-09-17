@@ -118,7 +118,7 @@ libraries = [
     },
     {
         "library": "openai >= 0.27.0",
-        "instrumentation": "opentelemetry-instrumentation-openai==0.6b0.dev",
+        "instrumentation": "opentelemetry-instrumentation-openai==1.0.0.dev",
     },
     {
         "library": "pika >= 0.12.0",
