@@ -66,6 +66,7 @@ jobs:
             exit 1
           fi
 
+          echo "PACKAGE_NAME=${{ inputs.package }}" >> $GITHUB_ENV
           echo "VERSION=$version" >> $GITHUB_ENV
           echo "NEXT_VERSION=$next_version" >> $GITHUB_ENV
           echo "CHANGELOG=$changelog" >> $GITHUB_ENV

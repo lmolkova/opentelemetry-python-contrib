@@ -139,8 +139,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          message="Copy change log updates from $GITHUB_REF_NAME"
-          body="Copy log updates from \`$GITHUB_REF_NAME\`."
+          message="Copy changelog updates from $GITHUB_REF_NAME"
+          body="Copy changelog updates from \`$GITHUB_REF_NAME\`."
           branch="opentelemetrybot/copy-change-log-updates-from-${GITHUB_REF_NAME//\//-}"
 
           if [[ -z $PRIOR_VERSION_WHEN_PATCH ]]; then
