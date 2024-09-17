@@ -88,7 +88,7 @@ jobs:
 
       - name: Set environment variables
         run: |
-          echo "RELEASE_BRANCH_NAME=${{ needs.prereqs.outputs.release_brach_name }}" >> $GITHUB_ENV
+          echo "RELEASE_BRANCH_NAME=${{ needs.prereqs.outputs.release_branch_name }}" >> $GITHUB_ENV
           echo "VERSION=${{ needs.prereqs.outputs.version }}" >> $GITHUB_ENV
           echo "CHANGELOG=${{ needs.prereqs.outputs.changelog }}" >> $GITHUB_ENV
           echo "VERSION_FILE=${{ needs.prereqs.outputs.version_file }}" >> $GITHUB_ENV
