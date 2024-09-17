@@ -1,4 +1,4 @@
-name: Prepare package release
+name: "[Package] prepare release"
 on:
   workflow_dispatch:
     inputs:

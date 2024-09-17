@@ -1,4 +1,4 @@
-name: Prepare patch release
+name: "[Package] prepare patch release"
 on:
   workflow_dispatch:
     inputs:
@@ -18,12 +18,13 @@ jobs:
 
       - name: Verify prerequisites
         run: |
-          if [[ $GITHUB_REF_NAME != ^package-release/${{ inputs.package }}/v* ]]; then
+          if [[ $GITHUB_REF_NAME != package-release/${{ inputs.package }}/v* ]]; then
             echo this workflow should only be run against package-release/${{ inputs.package }}* branches, but is running on $GITHUB_REF_NAME
             exit 1
           fi
 
-          changelog=./$(./scripts/eachdist.py find-package --package ${{ inputs.package }})/CHANGELOG.md
+          path=./$(./scripts/eachdist.py find-package --package ${{ inputs.package }})
+          changelog=$path/CHANGELOG.md
 
           if ! grep --quiet "^## Unreleased$" CHANGELOG.md; then
             echo the change log is missing an \"Unreleased\" section
