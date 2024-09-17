@@ -18,8 +18,8 @@ jobs:
 
       - name: Verify prerequisites
         run: |
-          if [[ $GITHUB_REF_NAME != ^package-release/${{ inputs.package }}/v* ]]; then
-            echo this workflow should only be run against package-release/${{ inputs.package }}* branches
+          if [[ $GITHUB_REF_NAME != package-release/${{ inputs.package }}/v* ]]; then
+            echo this workflow should only be run against package-release/${{ inputs.package }}* branches, but is running on $GITHUB_REF_NAME
             exit 1
           fi
 
@@ -61,7 +61,7 @@ jobs:
           fi
 
           if [[ $GITHUB_REF_NAME != $release_branch_name ]]; then
-            echo this workflow should only be run against $release_branch_name branch
+            echo this workflow should only be run against $release_branch_name branch, but is running on $GITHUB_REF_NAME
             exit 1
           fi
 
