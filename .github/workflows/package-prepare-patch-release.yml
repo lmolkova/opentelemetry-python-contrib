@@ -23,7 +23,8 @@ jobs:
             exit 1
           fi
 
-          changelog=./$(./scripts/eachdist.py find-package --package ${{ inputs.package }})/CHANGELOG.md
+          path=./$(./scripts/eachdist.py find-package --package ${{ inputs.package }})
+          changelog=$path/CHANGELOG.md
 
           if ! grep --quiet "^## Unreleased$" CHANGELOG.md; then
             echo the change log is missing an \"Unreleased\" section
