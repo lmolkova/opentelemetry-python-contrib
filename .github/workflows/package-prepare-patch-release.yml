@@ -6,6 +6,8 @@ on:
         type: choice
         options:
         - opentelemetry-instrumentation-openai
+        - opentelemetry-resource-detector-azure
+        - opentelemetry-sdk-extension-aws
         description: 'Package to be released'
         required: true
 jobs:
