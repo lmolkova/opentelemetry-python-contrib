@@ -74,4 +74,4 @@ echo $(ls)
 #fi
 
 # Build a wheel for the source distribution
-pip wheel --no-deps $pkg_tar_gz_file
+pip wheel --no-deps lmolkova_$pkg_tar_gz_file
