@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 from typing import Optional, Union
 from opentelemetry.trace import SpanKind, Span
 from opentelemetry._events import EventLogger, Event
@@ -70,11 +71,11 @@ def chat_completions_create(original_method, version, tracer: Tracer, event_logg
                         for choice in result.choices:
                             finish_reasons.append(choice.finish_reason or "error")
 
-                            choice_content = {
+                            choice_content = JsonBody({
                                 "index": choice.index,
                                 "finish_reason": choice.finish_reason,
                                 "message": _choice_to_message(choice),
-                            }
+                            })
                             event_logger.emit(Event(name="gen_ai.choice", body=choice_content))
                     span.set_attribute(gen_ai_attributes.GEN_AI_RESPONSE_FINISH_REASONS, finish_reasons)
                     span.end()
@@ -128,13 +129,13 @@ def _message_to_event(message):
     role = _get_prop(message, "role")
     content = _get_prop(message, "content")
     if role == "user":
-        return Event(name="gen_ai.user.message", body={"content": content})
+        return Event(name="gen_ai.user.message", body=JsonBody({"content": content}))
     elif role == "system":
-        return Event(name="gen_ai.system.message", body={"content": content})
+        return Event(name="gen_ai.system.message", body=JsonBody({"content": content}))
     elif role == "assistant":
         tool_calls = _get_prop(message, "tool_calls")
         if not tool_calls:
-            return Event(name="gen_ai.assistant.message", body={"content": content})
+            return Event(name="gen_ai.assistant.message", body=JsonBody({"content": content}))
         else:
             body = {"tool_calls": [
                 {
@@ -149,9 +150,9 @@ def _message_to_event(message):
             ]}
             if content:
                 body["content"] = content
-            return Event(name="gen_ai.assistant.message", body=body)
+            return Event(name="gen_ai.assistant.message", body=JsonBody(body))
     elif role == "tool":
-        return Event(name="gen_ai.tool.message", body={"content": content, "id": _get_prop(message, "tool_call_id")})
+        return Event(name="gen_ai.tool.message", body=JsonBody({"content": content, "id": _get_prop(message, "tool_call_id")}))
 
 def _set_response_attributes(span, response_model, response_id, usage_input_tokens, usage_output_tokens):
     if not span.is_recording():
@@ -226,11 +227,11 @@ class StreamWrapper:
 
             for choice in self.choices:
                 finish_reasons.append(choice.finish_reason or "error")
-                choice_content = {
+                choice_content = JsonBody({
                     "index": choice.index,
                     "finish_reason": choice.finish_reason,
                     "message": {"content" : choice.content_str}, # todo - do we need to deserialize?
-                }
+                })
                 self.event_logger.emit(Event(name="gen_ai.choice", body=choice_content, trace_id=self.span.get_span_context().trace_id, span_id=self.span.get_span_context().span_id))
 
             _set_span_attribute(self.span, gen_ai_attributes.GEN_AI_RESPONSE_FINISH_REASONS, finish_reasons)
@@ -277,3 +278,10 @@ class StreamWrapper:
             for choice in chunk.choices:
                 if choice:
                     self.choices[choice.index].append(choice)
+
+class JsonBody:
+    def __init__(self, body):
+        self.body = body
+
+    def __str__(self) -> str:
+        return json.dumps(self.body)
