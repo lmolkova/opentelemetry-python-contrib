@@ -279,9 +279,14 @@ class StreamWrapper:
                 if choice:
                     self.choices[choice.index].append(choice)
 
-class JsonBody:
-    def __init__(self, body):
-        self.body = body
+class JsonBody(dict):
+    def __init__(self, obj=None, **kwargs):
+        if obj is None:
+            obj = {}
+        super().__init__(obj, **kwargs)
 
-    def __str__(self) -> str:
-        return json.dumps(self.body)
+    def to_json(self):
+        return json.dumps(self)
+
+    def __str__(self):
+        return self.to_json()
