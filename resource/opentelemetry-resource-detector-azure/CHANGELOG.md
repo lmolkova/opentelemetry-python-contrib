@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## Version 0.2.0 (2024-10-07)
+
 - Ensure consistently use of suppress_instrumentation utils
   ([#2590](https://github.com/open-telemetry/opentelemetry-python-contrib/pull/2590))
 
