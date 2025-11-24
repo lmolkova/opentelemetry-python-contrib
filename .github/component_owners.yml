@@ -23,13 +23,9 @@ components:
     - shalevr
 
   instrumentation-genai/:
-    - karthikscale3
     - lmolkova
     - lzchen
     - gyliu513
-    - nirga
-    - alizenhom
-    - codefromthecrypt
 
   processor/opentelemetry-processor-baggage:
     - codeboten
