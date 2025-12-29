@@ -1,0 +1,33 @@
+templates:
+  - template: full_report.j2
+    filter: .
+    file_name: full_report.json
+    application_mode: single
+  - template: violations.j2
+    # TODO: this should either be provided out of the box by weaver
+    # or it would be more obvious and friendly to parse out of full report
+    # and avoid the need for custom weaver config, jq and jinja all together.
+    filter: >
+      {
+        statistics,
+        violations: (
+          [
+            .. | objects
+            | select(has("live_check_result"))
+            | .live_check_result.all_advice[]?
+            | select(.level == "violation")
+          ]
+          | group_by(.id, .message, .context, .signal_name, .signal_type)
+          | map({
+              id: .[0].id,
+              message: .[0].message,
+              context: .[0].context,
+              signal_name: .[0].signal_name,
+              signal_type: .[0].signal_type,
+              count: length
+          })
+          | sort_by(-.count, .message)
+        )
+      }
+    file_name: violations.md
+    application_mode: single

@@ -1,0 +1,14 @@
+{% macro signal(violation) -%}
+{%- if violation.signal_type and violation.signal_name %} on {{ violation.signal_type }} '{{ violation.signal_name }}'
+{%- elif violation.signal_type %} on {{ violation.signal_type }}
+{%- elif violation.signal_name -%} on '{{ violation.signal_name }}'
+{%- endif %}{%- endmacro -%}
+
+{%- if ctx.violations | length > 0 %}
+Violations:
+{% for violation in ctx.violations -%}
+- [{{violation.id}}] {{violation.message}} ({{violation.count}} occurrence(s){{signal(violation)}})
+{% endfor %}
+{%- endif %}
+
+Seen: {{ ctx.statistics.total_entities_by_type.metric | default(0) }} metric(s), {{ ctx.statistics.total_entities_by_type.span | default(0) }} span(s), {{ ctx.statistics.total_entities_by_type.log | default(0) }} log(s), {{ ctx.statistics.total_entities_by_type.resource | default(0) }} resource(s), {{ ctx.violations | length }} violation(s) total

@@ -2,6 +2,7 @@
 
 import json
 import os
+import sys
 
 import pytest
 import yaml
@@ -12,6 +13,17 @@ from opentelemetry.instrumentation.openai_v2.utils import (
     OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT,
 )
 from opentelemetry.sdk._logs import LoggerProvider
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
+from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
+
+from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+
+# Add the path to import WeaverContainer
+WEAVER_UTIL_TESTS_PATH = os.path.join(os.path.dirname(__file__), '../../../util/opentelemetry-util-genai/tests')
+sys.path.insert(0, WEAVER_UTIL_TESTS_PATH)
+
+from weaver_container import WeaverContainer
 
 # Backward compatibility for InMemoryLogExporter -> InMemoryLogRecordExporter rename
 try:
@@ -80,7 +92,6 @@ def fixture_meter_provider(metric_reader):
     )
 
     return meter_provider
-
 
 @pytest.fixture(autouse=True)
 def environment():
@@ -169,6 +180,44 @@ def instrument_with_content_unsampled(
     os.environ.pop(OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT, None)
     instrumentor.uninstrument()
 
+@pytest.fixture(scope="function")
+def instrument_with_content_weaver_v1_36(weaver_container_v1_36):
+    os.environ.update(
+        {OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT: "True"}
+    )
+
+    otlp_endpoint = weaver_container_v1_36.get_otlp_endpoint()
+    tp = TracerProvider()
+    tp.add_span_processor(SimpleSpanProcessor(OTLPSpanExporter(endpoint=otlp_endpoint)))
+    mp = MeterProvider(
+        metric_readers=[PeriodicExportingMetricReader(OTLPMetricExporter(endpoint=otlp_endpoint), export_interval_millis=5000)],
+    )
+    lp = LoggerProvider()
+    lp.add_log_record_processor(SimpleLogRecordProcessor(OTLPLogExporter(endpoint=otlp_endpoint)))
+
+    instrumentor = OpenAIInstrumentor()
+    instrumentor.instrument(
+        tracer_provider=tp,
+        logger_provider=lp,
+        meter_provider=mp,
+    )
+
+    yield instrumentor
+    os.environ.pop(OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT, None)
+    instrumentor.uninstrument()
+
+
+@pytest.fixture(scope="function")
+def weaver_container_v1_36():
+    policies_dir = os.path.join(os.path.dirname(__file__), '../../../util/opentelemetry-util-genai/tests/policies_v1.36')
+    templates_dir = os.path.join(os.path.dirname(__file__), '../../../util/opentelemetry-util-genai/tests/templates')
+    weaver = WeaverContainer(
+        schema_version="1.36.0",
+        policies_dir=policies_dir,
+        templates_dir=templates_dir,
+    )
+    yield weaver.start(timeout=20)
+    weaver.stop()
 
 class LiteralBlockScalar(str):
     """Formats the string as a literal block scalar, preserving whitespace and

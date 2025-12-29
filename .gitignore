@@ -35,6 +35,9 @@ coverage.xml
 .cache
 htmlcov
 
+# Weaver live-check reports
+*weaver-report/
+
 # Translations
 *.mo
 
