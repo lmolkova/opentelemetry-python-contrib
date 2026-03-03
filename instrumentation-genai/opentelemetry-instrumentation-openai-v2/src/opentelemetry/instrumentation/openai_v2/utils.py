@@ -37,6 +37,7 @@ from opentelemetry.semconv.attributes import (
 )
 from opentelemetry.trace.status import Status, StatusCode
 from opentelemetry.util.genai.types import (
+    EmbeddingInvocation,
     InputMessage,
     LLMInvocation,
     OutputMessage,
@@ -326,6 +327,23 @@ def get_llm_request_attributes(
 
     # filter out values not set
     return {k: v for k, v in attributes.items() if value_is_set(v)}
+
+
+def create_embedding_invocation(
+    kwargs, client_instance
+) -> EmbeddingInvocation:
+    embedding_invocation = EmbeddingInvocation(
+        request_model=kwargs.get("model", "")
+    )
+    embedding_invocation.provider = (
+        GenAIAttributes.GenAiProviderNameValues.OPENAI.value
+    )
+    address, port = get_server_address_and_port(client_instance)
+    if address:
+        embedding_invocation.server_address = address
+    if port:
+        embedding_invocation.server_port = port
+    return embedding_invocation
 
 
 def create_chat_invocation(

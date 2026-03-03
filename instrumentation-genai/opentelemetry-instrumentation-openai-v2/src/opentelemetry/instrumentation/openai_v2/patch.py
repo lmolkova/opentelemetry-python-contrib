@@ -35,6 +35,7 @@ from opentelemetry.trace.propagation import set_span_in_context
 from opentelemetry.util.genai.handler import TelemetryHandler
 from opentelemetry.util.genai.types import (
     ContentCapturingMode,
+    EmbeddingInvocation,
     Error,
     LLMInvocation,
     OutputMessage,
@@ -47,6 +48,7 @@ from .utils import (
     _prepare_output_messages,
     choice_to_event,
     create_chat_invocation,
+    create_embedding_invocation,
     get_llm_request_attributes,
     handle_span_exception,
     is_streaming,
@@ -265,10 +267,48 @@ def async_chat_completions_create_v_new(
     return traced_method
 
 
-def embeddings_create(
+def embeddings_create_v_new(handler: TelemetryHandler, instruments: Instruments):
+    """Wrap the `create` method of the `Embeddings` class to trace it."""
+
+    def traced_method(wrapped, instance, args, kwargs):
+        invocation = handler.start(
+            create_embedding_invocation(kwargs, instance)
+        )
+
+        _add_embedding_start_attributes(invocation, kwargs)
+
+        start = default_timer()
+        result = None
+        error_type = None
+
+        try:
+            result = wrapped(*args, **kwargs)
+            _set_embeddings_response_attributes(invocation, result)
+            handler.stop(invocation)
+            return result
+        except Exception as error:
+            error_type = type(error).__qualname__
+            handler.fail(
+                invocation, Error(type=type(error), message=str(error))
+            )
+            raise
+        finally:
+            duration = max((default_timer() - start), 0)
+            _record_metrics(
+                instruments,
+                duration,
+                result,
+                _embedding_metric_attributes(invocation),
+                error_type,
+                GenAIAttributes.GenAiOperationNameValues.EMBEDDINGS.value,
+            )
+
+    return traced_method
+
+
+def embeddings_create_v_old(
     tracer: Tracer,
     instruments: Instruments,
-    latest_experimental_enabled: bool,
 ):
     """Wrap the `create` method of the `Embeddings` class to trace it."""
 
@@ -276,7 +316,7 @@ def embeddings_create(
         span_attributes = get_llm_request_attributes(
             kwargs,
             instance,
-            latest_experimental_enabled,
+            False,
             GenAIAttributes.GenAiOperationNameValues.EMBEDDINGS.value,
         )
         span_name = _get_embeddings_span_name(span_attributes)
@@ -295,7 +335,7 @@ def embeddings_create(
                 result = wrapped(*args, **kwargs)
 
                 if span.is_recording():
-                    _set_embeddings_response_attributes(span, result)
+                    _set_embeddings_response_attributes_old(span, result)
 
                 return result
 
@@ -318,10 +358,48 @@ def embeddings_create(
     return traced_method
 
 
-def async_embeddings_create(
+def async_embeddings_create_v_new(handler: TelemetryHandler, instruments: Instruments):
+    """Wrap the `create` method of the `AsyncEmbeddings` class to trace it."""
+
+    async def traced_method(wrapped, instance, args, kwargs):
+        invocation = handler.start(
+            create_embedding_invocation(kwargs, instance)
+        )
+
+        _add_embedding_start_attributes(invocation, kwargs)
+
+        start = default_timer()
+        result = None
+        error_type = None
+
+        try:
+            result = await wrapped(*args, **kwargs)
+            _set_embeddings_response_attributes(invocation, result)
+            handler.stop(invocation)
+            return result
+        except Exception as error:
+            error_type = type(error).__qualname__
+            handler.fail(
+                invocation, Error(type=type(error), message=str(error))
+            )
+            raise
+        finally:
+            duration = max((default_timer() - start), 0)
+            _record_metrics(
+                instruments,
+                duration,
+                result,
+                _embedding_metric_attributes(invocation),
+                error_type,
+                GenAIAttributes.GenAiOperationNameValues.EMBEDDINGS.value,
+            )
+
+    return traced_method
+
+
+def async_embeddings_create_v_old(
     tracer: Tracer,
     instruments: Instruments,
-    latest_experimental_enabled: bool,
 ):
     """Wrap the `create` method of the `AsyncEmbeddings` class to trace it."""
 
@@ -329,7 +407,7 @@ def async_embeddings_create(
         span_attributes = get_llm_request_attributes(
             kwargs,
             instance,
-            latest_experimental_enabled,
+            False,
             GenAIAttributes.GenAiOperationNameValues.EMBEDDINGS.value,
         )
         span_name = _get_embeddings_span_name(span_attributes)
@@ -348,7 +426,7 @@ def async_embeddings_create(
                 result = await wrapped(*args, **kwargs)
 
                 if span.is_recording():
-                    _set_embeddings_response_attributes(span, result)
+                    _set_embeddings_response_attributes_old(span, result)
 
                 return result
 
@@ -546,7 +624,7 @@ def _set_response_properties(
     return chat_invocation
 
 
-def _set_embeddings_response_attributes(
+def _set_embeddings_response_attributes_old(
     span: Span,
     result: Any,
 ):
@@ -572,6 +650,44 @@ def _set_embeddings_response_attributes(
             result.usage.prompt_tokens,
         )
         # Don't set output tokens for embeddings as all tokens are input tokens
+
+
+def _set_embeddings_response_attributes(
+    invocation: EmbeddingInvocation,
+    result: Any,
+):
+    # Set embeddings dimensions if we can determine it from the response
+    if getattr(result, "data", None) and len(result.data) > 0:
+        first_embedding = result.data[0]
+        if getattr(first_embedding, "embedding", None):
+            invocation.dimension_count = len(first_embedding.embedding)
+
+    # Get the usage
+    if getattr(result, "usage", None):
+        invocation.input_tokens = result.usage.prompt_tokens
+        # Don't set output tokens for embeddings as all tokens are input tokens
+
+    if getattr(result, "model", None):
+        invocation.response_model_name = result.model
+
+
+def _add_embedding_start_attributes(invocation: EmbeddingInvocation, kwargs):
+    if invocation.span and invocation.span.is_recording():
+        enc_format = kwargs.get("encoding_format")
+        if enc_format:
+            invocation.encoding_formats = [enc_format]
+
+
+def _embedding_metric_attributes(invocation: EmbeddingInvocation) -> dict:
+    """Build request_attributes dict for _record_metrics from an EmbeddingInvocation."""
+    attrs = {GenAIAttributes.GEN_AI_REQUEST_MODEL: invocation.request_model or ""}
+    if invocation.dimension_count is not None:
+        attrs["gen_ai.embeddings.dimension.count"] = invocation.dimension_count
+    if invocation.server_address:
+        attrs[ServerAttributes.SERVER_ADDRESS] = invocation.server_address
+    if invocation.server_port is not None:
+        attrs[ServerAttributes.SERVER_PORT] = invocation.server_port
+    return attrs
 
 
 class ToolCallBuffer:
