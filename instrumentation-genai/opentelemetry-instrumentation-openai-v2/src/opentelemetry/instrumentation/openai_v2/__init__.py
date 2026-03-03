@@ -65,10 +65,12 @@ from .instruments import Instruments
 from .patch import (
     async_chat_completions_create_v_new,
     async_chat_completions_create_v_old,
-    async_embeddings_create,
+    async_embeddings_create_v_new,
+    async_embeddings_create_v_old,
     chat_completions_create_v_new,
     chat_completions_create_v_old,
-    embeddings_create,
+    embeddings_create_v_new,
+    embeddings_create_v_old,
 )
 
 
@@ -146,16 +148,20 @@ class OpenAIInstrumentor(BaseInstrumentor):
         wrap_function_wrapper(
             module="openai.resources.embeddings",
             name="Embeddings.create",
-            wrapper=embeddings_create(
-                tracer, instruments, latest_experimental_enabled
+            wrapper=(
+                embeddings_create_v_new(handler)
+                if latest_experimental_enabled
+                else embeddings_create_v_old(tracer, instruments)
             ),
         )
 
         wrap_function_wrapper(
             module="openai.resources.embeddings",
             name="AsyncEmbeddings.create",
-            wrapper=async_embeddings_create(
-                tracer, instruments, latest_experimental_enabled
+            wrapper=(
+                async_embeddings_create_v_new(handler)
+                if latest_experimental_enabled
+                else async_embeddings_create_v_old(tracer, instruments)
             ),
         )
 
