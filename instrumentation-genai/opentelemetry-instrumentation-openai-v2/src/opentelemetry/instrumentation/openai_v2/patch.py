@@ -267,7 +267,9 @@ def async_chat_completions_create_v_new(
     return traced_method
 
 
-def embeddings_create_v_new(handler: TelemetryHandler, instruments: Instruments):
+def embeddings_create_v_new(
+    handler: TelemetryHandler, instruments: Instruments
+):
     """Wrap the `create` method of the `Embeddings` class to trace it."""
 
     def traced_method(wrapped, instance, args, kwargs):
@@ -358,7 +360,9 @@ def embeddings_create_v_old(
     return traced_method
 
 
-def async_embeddings_create_v_new(handler: TelemetryHandler, instruments: Instruments):
+def async_embeddings_create_v_new(
+    handler: TelemetryHandler, instruments: Instruments
+):
     """Wrap the `create` method of the `AsyncEmbeddings` class to trace it."""
 
     async def traced_method(wrapped, instance, args, kwargs):
@@ -680,7 +684,9 @@ def _add_embedding_start_attributes(invocation: EmbeddingInvocation, kwargs):
 
 def _embedding_metric_attributes(invocation: EmbeddingInvocation) -> dict:
     """Build request_attributes dict for _record_metrics from an EmbeddingInvocation."""
-    attrs = {GenAIAttributes.GEN_AI_REQUEST_MODEL: invocation.request_model or ""}
+    attrs = {
+        GenAIAttributes.GEN_AI_REQUEST_MODEL: invocation.request_model or ""
+    }
     if invocation.dimension_count is not None:
         attrs["gen_ai.embeddings.dimension.count"] = invocation.dimension_count
     if invocation.server_address:
